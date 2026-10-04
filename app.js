@@ -305,7 +305,7 @@ function setOcupado(v){
 
 $("evaluar").addEventListener("click", async () => {
   if (!fotos.length) return estado("Primero toma o elige al menos una foto.", true);
-  if (!ajustes.clave) { estado("Falta tu clave de Claude. Agrégala en Ajustes, o toca Guardar para después.", true); abrirAjustes(); return; }
+  if (!ajustes.clave) { estado("Sin clave de Claude. Usa \"Sin clave: evaluar en el chat de Claude\" aquí abajo.", true); $("modo-chat").open = true; $("modo-chat").scrollIntoView({behavior: "smooth"}); return; }
   if (!navigator.onLine) return estado("Sin conexión. Toca Guardar para después y evalúa cuando tengas señal.", true);
   ctl = new AbortController(); setOcupado(true);
   const nrefs = Math.min(MAX_REFS, referencias().length);
@@ -319,6 +319,27 @@ $("evaluar").addEventListener("click", async () => {
   finally { setOcupado(false); }
 });
 $("detener").addEventListener("click", () => ctl?.abort());
+
+// Resultado traído desde el chat de Claude (sin clave de API): "SCA{...}"
+$("usar-resultado").addEventListener("click", () => {
+  const t = $("pegar-resultado").value;
+  const i = t.indexOf("{"), j = t.lastIndexOf("}");
+  let r = null;
+  try { r = JSON.parse(t.slice(i, j + 1)); } catch {}
+  const conteos = r?.conteos || r;
+  if (!r || typeof conteos !== "object" || !DEFECTOS.some(d => d.k in conteos)) { estado("Ese código no se pudo leer. Cópialo entero desde el chat, desde SCA{ hasta la última llave }.", true); return; }
+  if (r.lote && !$("lote").value) $("lote").value = String(r.lote);
+  if (r.origen && !$("origen").value) $("origen").value = String(r.origen);
+  if (num(r.peso)) $("peso").value = num(r.peso);
+  claudeRes = {conteos: limpiar(conteos),
+    dudosos: Array.isArray(r.dudosos) ? r.dudosos.slice(0, 30).map(x => typeof x === "string" ? {donde: "", hipotesis: x} : {donde: String(x?.donde || ""), hipotesis: String(x?.hipotesis || "")}) : [],
+    confianza: String(r.confianza || ""), motivo_confianza: String(r.motivo_confianza || ""), problemas_foto: String(r.problemas_foto || ""),
+    notas: String(r.notas || ""), sanos: parseInt(r.sanos_en_foto) || 0, visibles: parseInt(r.total_granos_visibles) || 0, origen_resultado: "chat", fecha: new Date().toISOString()};
+  catador = {...claudeRes.conteos}; sinClasificar = 0;
+  $("pegar-resultado").value = ""; $("modo-chat").open = false;
+  mostrarResultado();
+  estado("Resultado de Claude cargado." + (fotos.length ? "" : " Agrega la foto arriba si quieres guardarla como referencia.") + " Revisa tu columna y toca Guardar y enseñar.");
+});
 
 $("manual").addEventListener("click", () => {
   claudeRes = null; catador = vacio(); sinClasificar = 0;

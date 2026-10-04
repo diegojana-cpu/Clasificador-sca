@@ -122,7 +122,7 @@ details.card[open] > summary::after{content:"–"}
   </header>
 
   <div class="banner" id="sin-clave" hidden>
-    <p><b>Falta tu clave de Claude.</b> Pégala en Ajustes para poder evaluar. Sin clave igual puedes registrar tu conteo y guardar fotos.</p>
+    <p><b>Sin clave de Claude.</b> Puedes evaluar mandando la foto a Claude en el chat del proyecto y pegando aquí el código que te devuelve (ver "Sin clave" más abajo). Si algún día cargas saldo, pega la clave en Ajustes.</p>
     <div class="row"><button class="small primary" id="ir-ajustes">Abrir ajustes</button></div>
   </div>
   <div class="banner" id="pendientes-banner" hidden>
@@ -160,6 +160,16 @@ details.card[open] > summary::after{content:"–"}
       <button id="detener" hidden>Detener</button>
     </div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
+    <details id="modo-chat">
+      <summary><b>Sin clave: evaluar en el chat de Claude</b></summary>
+      <ol class="plain" style="margin-top:8px">
+        <li>Manda la foto a Claude en tu proyecto, con el origen y el peso de la muestra.</li>
+        <li>Claude te responde con un código que empieza con <span class="mono">SCA{</span>. Cópialo entero.</li>
+        <li>Pégalo aquí y toca Usar resultado. Luego corriges y guardas como siempre.</li>
+      </ol>
+      <label style="margin-top:8px">Código de Claude<textarea id="pegar-resultado" rows="3" placeholder="SCA{...}"></textarea></label>
+      <div class="row" style="margin-top:8px"><button class="primary" id="usar-resultado">Usar resultado</button></div>
+    </details>
   </section>
 
   <section class="card" id="resultado" aria-labelledby="h-res" hidden>
