@@ -209,8 +209,9 @@ details.card[open] > summary::after{content:"–"}
   <details class="card" id="ajustes">
     <summary>Ajustes</summary>
     <label>Clave de API de Claude
-      <input id="clave" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+      <input id="clave" type="password" autocomplete="off" spellcheck="false" placeholder="Pega aquí la clave sk-ant-…">
     </label>
+    <p class="status" id="clave-info"></p>
     <p class="status">Se guarda solo en este teléfono y se envía únicamente a Anthropic. Se crea en console.anthropic.com → API Keys. Cada evaluación se cobra en esa cuenta.</p>
     <label>Precisión
       <select id="esfuerzo">
@@ -219,7 +220,7 @@ details.card[open] > summary::after{content:"–"}
         <option value="xhigh">Máxima (más lenta)</option>
       </select>
     </label>
-    <div class="row"><button class="primary" id="guardar-clave">Guardar ajustes</button><button id="borrar-clave">Borrar clave</button></div>
+    <div class="row"><button class="primary" id="guardar-clave">Guardar ajustes</button><button id="probar-clave">Probar clave</button><button id="borrar-clave">Borrar clave</button></div>
     <p class="status" id="ajustes-status" role="status"></p>
   </details>
 

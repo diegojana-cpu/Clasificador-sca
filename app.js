@@ -545,15 +545,30 @@ $("agregar-leccion").addEventListener("click", async () => {
 // ---------- Ajustes ----------
 function abrirAjustes(){ $("ajustes").open = true; $("ajustes").scrollIntoView({behavior: "smooth"}); setTimeout(() => $("clave").focus(), 300); }
 $("ir-ajustes").addEventListener("click", abrirAjustes);
-$("clave").value = ajustes.clave; $("esfuerzo").value = ajustes.esfuerzo;
-$("guardar-clave").addEventListener("click", () => {
-  const k = $("clave").value.trim();
+$("esfuerzo").value = ajustes.esfuerzo;
+function describirClave(){
+  const k = ajustes.clave;
+  $("clave-info").textContent = k ? `Clave guardada: ${k.slice(0, 10)}…${k.slice(-4)} (${k.length} caracteres).` : "No hay clave guardada.";
+}
+async function probarClave(){
+  const c = getCliente(); if (!c) return;
+  if (!navigator.onLine) { $("ajustes-status").textContent = "Guardada. La probaré cuando tengas señal."; return; }
+  $("ajustes-status").textContent = "Guardada. Probando la clave con Anthropic…";
+  try { await c.models.list({limit: 1}); $("ajustes-status").textContent = "Clave correcta ✓. Ya puedes evaluar con Claude."; }
+  catch (e) { $("ajustes-status").textContent = e?.status === 401 ? "Anthropic rechazó la clave: está incompleta o fue borrada. Cópiala de nuevo completa (o crea otra) y vuelve a guardar." : mensajeError(e); }
+}
+$("guardar-clave").addEventListener("click", async () => {
+  const k = $("clave").value.replace(/\s+/g, "");
   if (k && !k.startsWith("sk-ant-")) { $("ajustes-status").textContent = "Esa no parece una clave de Anthropic (empieza con sk-ant-)."; return; }
+  if (k && k.length < 60) { $("ajustes-status").textContent = `La clave que pegaste tiene ${k.length} caracteres y una completa tiene alrededor de 100. Cópiala de nuevo entera desde console.anthropic.com.`; return; }
   try { if (k) localStorage.setItem("clave", k); localStorage.setItem("esfuerzo", $("esfuerzo").value); }
   catch { $("ajustes-status").textContent = "Este navegador no deja guardar datos. Sal del modo privado."; return; }
-  $("ajustes-status").textContent = "Guardado en este teléfono."; renderAvisos();
+  $("clave").value = ""; describirClave(); renderAvisos();
+  if (k) await probarClave(); else $("ajustes-status").textContent = "Ajustes guardados.";
 });
-$("borrar-clave").addEventListener("click", () => { try { localStorage.removeItem("clave"); } catch {} $("clave").value = ""; $("ajustes-status").textContent = "Clave borrada."; renderAvisos(); });
+$("probar-clave").addEventListener("click", probarClave);
+describirClave();
+$("borrar-clave").addEventListener("click", () => { try { localStorage.removeItem("clave"); } catch {} $("clave").value = ""; $("ajustes-status").textContent = "Clave borrada."; describirClave(); renderAvisos(); });
 
 // ---------- Respaldo ----------
 function dataURL(blob){ return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); }); }
