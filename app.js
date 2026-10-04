@@ -243,7 +243,7 @@ function mensajeError(e){
   if (e?.codigo === "incompleta") return "La respuesta vino incompleta. Toca Evaluar de nuevo.";
   if (e?.name === "AbortError" || e?.constructor?.name === "APIUserAbortError") return "Evaluación detenida.";
   const s = e?.status;
-  if (s === 401) return "La clave de Claude no es válida. Revísala en Ajustes.";
+  if (s === 401) return "Anthropic rechazó la clave guardada (" + ajustes.clave.length + " caracteres): está incompleta o fue borrada. En Ajustes toca Borrar clave y pega una nueva completa.";
   if (s === 403) return "La clave no tiene permiso para este modelo. Revisa tu cuenta en console.anthropic.com.";
   if (s === 402 || /credit|billing/i.test(String(e?.message))) return "Tu cuenta de Anthropic no tiene saldo. Carga créditos en console.anthropic.com.";
   if (s === 429) return "Llegaste al límite de uso por ahora. Intenta en un rato.";
@@ -606,6 +606,7 @@ $("guardar-clave").addEventListener("click", async () => {
   if (k) await probarClave(); else $("ajustes-status").textContent = "Ajustes guardados.";
 });
 $("probar-clave").addEventListener("click", probarClave);
+try { const k = localStorage.getItem("clave"); if (k && k.length < 60) { localStorage.removeItem("clave"); $("ajustes-status").textContent = "Borré una clave guardada que estaba incompleta (" + k.length + " caracteres). Pega una nueva completa."; } } catch {}
 describirClave();
 $("borrar-clave").addEventListener("click", () => { try { localStorage.removeItem("clave"); } catch {} $("clave").value = ""; $("ajustes-status").textContent = "Clave borrada."; describirClave(); renderAvisos(); });
 
