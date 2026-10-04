@@ -1,0 +1,32 @@
+{
+  "formato": "clasificador-sca-v1",
+  "nota": "Base inicial: las dos muestras evaluadas en el proyecto y las 4 lecciones de la prueba 1.",
+  "lecciones": [
+    {"fecha": "2026-10-03", "origen": "Prueba 1", "texto": "En cafés de proceso natural, un tono marrón uniforme puede ser propio del proceso: cuéntalo como agrio completo solo si el color es claramente anormal frente al resto."},
+    {"fecha": "2026-10-03", "origen": "Prueba 1", "texto": "Revisa el contorno de cada grano: bordes quebrados, puntas faltantes y formas asimétricas o aplastadas cuentan como partido o malformado. En la prueba 1 el catador contó 16 y Claude solo 5."},
+    {"fecha": "2026-10-03", "origen": "Prueba 1", "texto": "Busca granos verdosos, verde oliva u opacos con película plateada: son inmaduros. En la prueba 1 el catador contó 6 y Claude 2."},
+    {"fecha": "2026-10-03", "origen": "Prueba 1", "texto": "Las perforaciones de broca son puntos oscuros de ~1 mm, fáciles de pasar por alto: mira de cerca la punta y la cara curva de cada grano. En la prueba 1 el catador contó 6 y Claude 3."}
+  ],
+  "muestras": [
+    {
+      "id": "prueba-01-colombia-natural",
+      "lote": "Prueba 1", "origen": "Colombia, natural", "fecha": "2026-10-03",
+      "peso": 350, "humedad": null, "quakers": null,
+      "fotos_url": ["semilla/colombia-natural.jpg"],
+      "claude": {"negro_completo": 1, "agrio_completo": 8, "cereza_seca": 2, "negro_parcial": 5, "agrio_parcial": 5, "partido": 4, "insecto_leve": 3, "inmaduro": 2, "arrugado": 3, "concha": 1},
+      "catador": {"negro_completo": 1, "agrio_completo": 7, "negro_parcial": 4, "inmaduro": 6, "insecto_leve": 6, "partido": 16},
+      "sin_clasificar": 7,
+      "notas_catador": "Los agrios son completos. Los dañados por insecto tienen más de una perforación por grano. Los 16 rotos incluyen granos con defecto de formación.",
+      "referencia": true, "estado": "verificada", "creado": 1791040000000
+    },
+    {
+      "id": "prueba-02-honduras-honey",
+      "lote": "Prueba 2", "origen": "Honduras, honey", "fecha": "2026-10-03",
+      "peso": 300, "humedad": null, "quakers": null,
+      "fotos_url": ["semilla/honduras-honey.jpg"],
+      "claude": {"negro_completo": 1, "agrio_completo": 2, "negro_parcial": 7, "agrio_parcial": 5, "inmaduro": 3, "arrugado": 2, "concha": 2, "partido": 4, "insecto_leve": 3},
+      "catador": null, "sin_clasificar": 0, "notas_catador": "",
+      "referencia": false, "estado": "evaluada", "creado": 1791050000000
+    }
+  ]
+}
