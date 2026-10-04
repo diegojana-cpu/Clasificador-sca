@@ -155,7 +155,7 @@ details.card[open] > summary::after{content:"–"}
       <button class="primary" id="evaluar" disabled>Evaluar con Claude</button>
     </div>
     <div class="row">
-      <button id="manual" disabled>Solo mi conteo</button>
+      <button id="manual">Solo mi conteo</button>
       <button id="pendiente" disabled>Guardar para después</button>
       <button id="detener" hidden>Detener</button>
     </div>
@@ -167,7 +167,7 @@ details.card[open] > summary::after{content:"–"}
         <li>Claude te responde con un código que empieza con <span class="mono">SCA{</span>. Cópialo entero.</li>
         <li>Pégalo aquí y toca Usar resultado. Luego corriges y guardas como siempre.</li>
       </ol>
-      <label style="margin-top:8px">Código de Claude<textarea id="pegar-resultado" rows="3" placeholder="SCA{...}"></textarea></label>
+      <label style="margin-top:8px">Código de Claude<textarea id="pegar-resultado" rows="3" placeholder="SCA{...}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea></label>
       <div class="row" style="margin-top:8px"><button class="primary" id="usar-resultado">Usar resultado</button></div>
     </details>
   </section>
@@ -222,7 +222,7 @@ details.card[open] > summary::after{content:"–"}
       <input id="clave" type="password" autocomplete="off" spellcheck="false" placeholder="Pega aquí la clave sk-ant-…">
     </label>
     <p class="status" id="clave-info"></p>
-    <p class="status">Se guarda solo en este teléfono y se envía únicamente a Anthropic. Se crea en console.anthropic.com → API Keys. Cada evaluación se cobra en esa cuenta.</p>
+    <p class="status">Si instalaste la app en la pantalla de inicio, pega la clave dentro de esa app: en el iPhone, Safari y la app instalada no comparten datos. Se guarda solo en este teléfono y se envía únicamente a Anthropic. Se crea en console.anthropic.com → API Keys. Cada evaluación se cobra en esa cuenta.</p>
     <label>Precisión
       <select id="esfuerzo">
         <option value="high">Alta (recomendada)</option>

@@ -26,7 +26,7 @@ const $ = id => document.getElementById(id);
 const vacio = () => Object.fromEntries(DEFECTOS.map(d => [d.k, 0]));
 const limpiar = o => Object.fromEntries(DEFECTOS.map(d => [d.k, Math.max(0, parseInt(o?.[d.k]) || 0)]));
 const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
-const hoy = () => new Date().toISOString().slice(0, 10);
+const hoy = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
 function gradoDe(conteos, peso, hum, qk){
@@ -132,9 +132,9 @@ function renderFotos(){
     d.append(img, x); th.append(d);
   });
   const hay = fotos.length > 0;
-  $("evaluar").disabled = !hay || ocupado; $("manual").disabled = !hay || ocupado; $("pendiente").disabled = !hay || ocupado;
+  $("evaluar").disabled = !hay || ocupado; $("manual").disabled = ocupado; $("pendiente").disabled = !hay || ocupado;
 }
-["camara", "galeria"].forEach(id => $(id).addEventListener("change", e => { agregarArchivos(e.target.files); e.target.value = ""; }));
+["camara", "galeria"].forEach(id => $(id).addEventListener("change", e => { const lista = Array.from(e.target.files || []); e.target.value = ""; agregarArchivos(lista); }));
 
 function b64(blob){
   return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(blob); });
@@ -296,7 +296,7 @@ function datosForm(){
     peso: num($("peso").value) || 350, humedad: num($("humedad").value), quakers: num($("quakers").value)};
 }
 function calcular(){ return gradoDe(catador, num($("peso").value) || 350, num($("humedad").value), num($("quakers").value)); }
-["peso", "humedad", "quakers"].forEach(id => $(id).addEventListener("input", () => { if (!$("resultado").hidden) renderResultado(); }));
+["peso", "humedad", "quakers"].forEach(id => $(id).addEventListener("input", () => { if (!$("resultado").hidden) actualizarResumen(); }));
 
 function setOcupado(v){
   ocupado = v; $("detener").hidden = !v; renderFotos();
@@ -322,8 +322,8 @@ $("detener").addEventListener("click", () => ctl?.abort());
 
 // Resultado traído desde el chat de Claude (sin clave de API): "SCA{...}"
 $("usar-resultado").addEventListener("click", () => {
-  const t = $("pegar-resultado").value;
-  const i = t.indexOf("{"), j = t.lastIndexOf("}");
+  const t = $("pegar-resultado").value.replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"').replace(/[\u2018\u2019]/g, "'");
+  const ini = t.indexOf("SCA{"), i = ini >= 0 ? ini + 3 : t.indexOf("{"), j = t.lastIndexOf("}");
   let r = null;
   try { r = JSON.parse(t.slice(i, j + 1)); } catch {}
   const conteos = r?.conteos || r;
@@ -348,10 +348,11 @@ $("manual").addEventListener("click", () => {
 
 $("pendiente").addEventListener("click", async () => {
   if (!fotos.length) return;
-  const m = {id: editandoId || uid(), ...datosForm(), fotos: [...fotos], claude: null, catador: null, estado: "pendiente", referencia: false, creado: Date.now()};
+  const previa = editandoId ? muestras.find(x => x.id === editandoId) : null;
+  const m = {id: previa && previa.estado === "pendiente" ? previa.id : uid(), ...datosForm(), fotos: [...fotos], claude: null, catador: null, estado: "pendiente", referencia: false, creado: Date.now()};
   try { await dbPut(m); } catch { return estado("No se pudo guardar en el teléfono. Revisa el espacio libre.", true); }
   limpiarForm(); await recargar();
-  estado("Guardada como pendiente. Cuando tengas señal, toca Evaluar pendientes arriba.");
+  estado(ajustes.clave ? "Guardada como pendiente. Cuando tengas señal, toca Evaluar pendientes arriba." : "Guardada como pendiente. Para evaluarla, manda la foto a Claude en el chat y pega aquí el código que te devuelve.");
 });
 
 function mostrarResultado(){
@@ -360,8 +361,7 @@ function mostrarResultado(){
   $("resultado").scrollIntoView({behavior: "smooth", block: "start"});
 }
 
-function renderResultado(){
-  const r = calcular();
+function renderVeredicto(r){
   const v = $("verdict"); v.className = "verdict " + r.clase; v.replaceChildren();
   const big = document.createElement("div"); big.className = "big";
   big.textContent = r.grado === "Especialidad" ? "Café de especialidad" : r.grado === "No califica" ? "No califica como especialidad" : "No es especialidad · " + r.grado;
@@ -369,7 +369,19 @@ function renderResultado(){
   v.append(big, why);
   r.avisos.forEach(a => { const p = document.createElement("p"); p.className = "why"; p.textContent = a; v.append(p); });
   $("s-cat1").textContent = r.cat1; $("s-cat2").textContent = r.cat2; $("s-total").textContent = r.total;
-
+}
+function actualizarResumen(){
+  const r = calcular(); renderVeredicto(r);
+  const cl = claudeRes?.conteos;
+  r.filas.forEach(f => {
+    const x = $("co-" + f.k); if (x) x.textContent = f.completos;
+    const b = $("cl-" + f.k); if (b && cl) b.className = "mono" + ((cl[f.k] || 0) !== f.granos ? " diff" : "");
+  });
+  if ($("sub-1")) $("sub-1").textContent = r.cat1;
+  if ($("sub-2")) $("sub-2").textContent = r.cat2;
+}
+function renderResultado(){
+  const r = calcular(); renderVeredicto(r);
   const cl = claudeRes?.conteos;
   const tb = $("tabla"); tb.replaceChildren();
   [1, 2].forEach(c => {
@@ -381,18 +393,19 @@ function renderResultado(){
       const tr = document.createElement("tr"); if (!f.granos && !cv) tr.className = "zero";
       const a = document.createElement("td"); a.textContent = f.n; a.title = f.d;
       const eq = document.createElement("span"); eq.className = "eq"; eq.textContent = "equiv. " + f.e; a.append(eq);
-      const b = document.createElement("td"); b.className = "mono" + (cv !== null && cv !== f.granos ? " diff" : ""); b.textContent = cv === null ? "—" : cv;
+      const b = document.createElement("td"); b.id = "cl-" + f.k; b.className = "mono" + (cv !== null && cv !== f.granos ? " diff" : ""); b.textContent = cv === null ? "—" : cv;
       const i = document.createElement("td"); const inp = document.createElement("input");
       inp.type = "number"; inp.min = "0"; inp.inputMode = "numeric"; inp.value = f.granos;
       inp.setAttribute("aria-label", "Tu conteo de " + f.n);
-      inp.addEventListener("change", () => { catador[f.k] = Math.max(0, parseInt(inp.value) || 0); requestAnimationFrame(renderResultado); });
+      inp.addEventListener("input", () => { catador[f.k] = Math.max(0, parseInt(inp.value) || 0); actualizarResumen(); });
+      inp.addEventListener("focus", () => inp.select());
       i.append(inp);
-      const x = document.createElement("td"); x.className = "mono"; x.textContent = f.completos;
+      const x = document.createElement("td"); x.id = "co-" + f.k; x.className = "mono"; x.textContent = f.completos;
       tr.append(a, b, i, x); tb.append(tr);
     });
     const s = document.createElement("tr"); s.className = "sub";
     const s1 = document.createElement("td"); s1.textContent = "Subtotal cat. " + c; s1.colSpan = 3;
-    const s2 = document.createElement("td"); s2.className = "mono"; s2.textContent = c === 1 ? r.cat1 : r.cat2;
+    const s2 = document.createElement("td"); s2.id = "sub-" + c; s2.className = "mono"; s2.textContent = c === 1 ? r.cat1 : r.cat2;
     s.append(s1, s2); tb.append(s);
   });
   const sc = document.createElement("tr");
@@ -400,7 +413,7 @@ function renderResultado(){
   const sc2 = document.createElement("td"); sc2.textContent = "—";
   const sc3 = document.createElement("td"); const si = document.createElement("input");
   si.type = "number"; si.min = "0"; si.inputMode = "numeric"; si.value = sinClasificar; si.setAttribute("aria-label", "Granos sin clasificar");
-  si.addEventListener("change", () => { sinClasificar = Math.max(0, parseInt(si.value) || 0); });
+  si.addEventListener("input", () => { sinClasificar = Math.max(0, parseInt(si.value) || 0); });
   sc3.append(si); sc.append(sc1, sc2, sc3, document.createElement("td")); tb.append(sc);
 
   const ex = $("extra"); ex.replaceChildren();
@@ -442,8 +455,9 @@ $("guardar").addEventListener("click", async () => {
   }
   await recargar();
   limpiarForm();
-  $("resultado").hidden = false; $("guardar").hidden = true; $("guardar").disabled = false;
-  $("guardar-status").textContent = "Guardada en la base." + (nuevas.length ? " Claude sumó " + nuevas.length + " lección(es) nueva(s)." : fallo ? " No se pudieron generar lecciones esta vez." : "");
+  $("resultado").hidden = true; $("guardar").disabled = false;
+  estado(`"${m.lote}" guardada en la base: ${m.grado}, ${m.total} defectos completos.` + (nuevas.length ? " Claude sumó " + nuevas.length + " lección(es) nueva(s)." : fallo ? " No se pudieron generar lecciones esta vez." : ""));
+  $("h-hist").scrollIntoView({behavior: "smooth", block: "start"});
 });
 
 function limpiarForm(){
@@ -453,6 +467,7 @@ function limpiarForm(){
 }
 
 function abrirMuestra(m){
+  $("guardar-status").textContent = "";
   editandoId = m.id; fotos = [...(m.fotos || [])];
   $("lote").value = m.lote || ""; $("origen").value = m.origen || ""; $("fecha").value = m.fecha || hoy();
   $("peso").value = m.peso || 350; $("humedad").value = m.humedad ?? ""; $("quakers").value = m.quakers ?? "";
@@ -468,7 +483,10 @@ function abrirMuestra(m){
 
 // ---------- Pendientes ----------
 $("evaluar-pendientes").addEventListener("click", async () => {
-  if (!ajustes.clave) { abrirAjustes(); return; }
+  if (!ajustes.clave) {
+    $("pendientes-texto").textContent = "Sin clave, la app no puede evaluar sola. Manda la foto de cada pendiente a Claude en el chat, abre la muestra en la base (botón Evaluar) y pega el código en \"Sin clave\".";
+    return;
+  }
   const pend = muestras.filter(m => m.estado === "pendiente" && m.fotos?.length);
   setOcupado(true);
   let ok = 0, err = "";
