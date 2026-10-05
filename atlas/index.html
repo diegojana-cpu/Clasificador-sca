@@ -1,0 +1,281 @@
+<!doctype html><html><head><meta charset=utf8><meta name="theme-color" content="#2f6b4a"><link rel="manifest" href="../manifest.webmanifest"><link rel="apple-touch-icon" href="../icono-180.png"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Atlas de defectos SCA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: ficha de campo vertical; filtro por categoría arriba, una tarjeta por defecto con su ilustración al lado del nombre */
+:root{
+  --bg:#eef0ea; --surface:#fbfcf8; --tile:#d9ddd2; --fg:#1f2620; --muted:#5b6459; --line:#cfd5c8;
+  --accent:#7a5a2f;          /* yute del saco */
+  --cat1:#a3321f; --cat1-bg:#f6e1dc; --cat2:#4f6a2a; --cat2-bg:#e3ebd5;
+  --display:"Familjen Grotesk",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#161a16; --surface:#1f241f; --tile:#2c332c; --fg:#e7ebe3; --muted:#a2ab9f; --line:#343b33;
+  --accent:#d1a865; --cat1:#f08b74; --cat1-bg:#3a201b; --cat2:#a9c97a; --cat2-bg:#26301c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161a16; --surface:#1f241f; --tile:#2c332c; --fg:#e7ebe3; --muted:#a2ab9f; --line:#343b33;
+  --accent:#d1a865; --cat1:#f08b74; --cat1-bg:#3a201b; --cat2:#a9c97a; --cat2-bg:#26301c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:22px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.8rem,6vw,2.6rem);font-weight:700}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--muted);max-width:62ch;margin:.4rem 0 0}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.rule b{font-family:var(--display);font-size:1.05rem;display:block}
+.rule span{color:var(--muted);font-size:.9rem}
+.ref{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.ref svg{width:64px;height:64px;flex:none;background:var(--tile);border-radius:8px}
+.ref p{margin:0;font-size:.92rem;min-width:0}
+.filters{display:flex;flex-wrap:wrap;gap:8px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:8px;z-index:2}
+.filters button{font:inherit;font-size:.92rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:7px 14px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.filters button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.group{display:grid;gap:12px}
+.group h2{font-size:1.3rem;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.group h2 small{font-family:var(--body);font-weight:400;font-size:.88rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px;min-width:0}
+.head{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+.head svg{width:96px;height:96px;background:var(--tile);border-radius:10px}
+.head > div{min-width:0}
+.head h3{font-size:1.15rem}
+.en{color:var(--muted);font-size:.86rem;font-style:italic}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{font-family:var(--mono);font-size:.7rem;padding:2px 8px;border-radius:999px;letter-spacing:.02em}
+.c1{background:var(--cat1-bg);color:var(--cat1)} .c2{background:var(--cat2-bg);color:var(--cat2)}
+.eq{background:var(--tile);color:var(--fg)}
+dl{margin:0;display:grid;gap:6px}
+dt{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+dd{margin:0 0 4px;font-size:.93rem}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
+.shots img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;background:var(--tile)}
+.shots img:only-of-type{grid-column:1/-1;max-width:260px}
+.shots figcaption{grid-column:1/-1;font-size:.8rem;color:var(--muted)}
+.nophoto{font-size:.82rem;color:var(--muted);margin:0}
+.photos{font-size:.9rem;color:var(--accent);font-weight:700;text-decoration:none;justify-self:start}
+.photos:hover{text-decoration:underline}
+.note{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:14px;font-size:.93rem}
+.note ul{margin:.4rem 0 0;padding-left:1.1rem}
+footer{font-size:.85rem;color:var(--muted)}
+footer a{color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.card{transition:opacity .15s}}
+.volver{font-weight:700;color:var(--accent);text-decoration:none;justify-self:start}
+</style>
+
+<div class="wrap">
+  <a class="volver" href="../">← Volver al clasificador</a>
+  <header>
+    <div class="eyebrow">Norma SCA · café verde arábica · muestra 350 g</div>
+    <h1>Atlas de defectos SCA</h1>
+    <p class="lede">Los 16 defectos que cuenta la SCA en café verde. Cada tarjeta trae una ilustración, cuánto pesa en el conteo, cómo reconocerlo y por qué ocurre. <span id="conteo-fotos">Los defectos que ya aparecieron en tus muestras traen fotos reales recortadas de ellas</span>; el resto tiene un enlace a fotos en internet.</p>
+  </header>
+
+  <section class="rules" aria-label="Reglas de conteo">
+    <div class="rule"><b>Especialidad</b><span>0 defectos de categoría 1 y 5 o menos defectos completos.</span></div>
+    <div class="rule"><b>Equivalencia</b><span>Granos ÷ equivalencia, por tipo, redondeado hacia abajo.</span></div>
+    <div class="rule"><b>Un grano, un defecto</b><span>Si tiene varios, se cuenta solo el más grave.</span></div>
+    <div class="rule"><b>Grados</b><span>Premium ≤ 8 · Exchange 9–23 · Bajo estándar 24–86.</span></div>
+  </section>
+
+  <div class="ref">
+    <svg viewBox="0 0 200 200" role="img" aria-label="Grano sano" data-bean="sano"></svg>
+    <p><b>Referencia: grano sano.</b> Verde grisáceo o azulado parejo, denso, hendidura cerrada. Compara cada defecto contra este tono.</p>
+  </div>
+
+  <nav class="filters" aria-label="Filtrar por categoría">
+    <button type="button" data-f="all" aria-pressed="true">Todos (16)</button>
+    <button type="button" data-f="1" aria-pressed="false">Categoría 1 (6)</button>
+    <button type="button" data-f="2" aria-pressed="false">Categoría 2 (10)</button>
+  </nav>
+
+  <section class="group" data-cat="1">
+    <h2>Categoría 1 <small>Primarios. Uno solo ya impide ser especialidad.</small></h2>
+    <div class="grid" id="g1"></div>
+  </section>
+
+  <section class="group" data-cat="2">
+    <h2>Categoría 2 <small>Secundarios. Se permiten hasta 5 defectos completos.</small></h2>
+    <div class="grid" id="g2"></div>
+  </section>
+
+  <aside class="note">
+    <b>No se cuentan como defecto en verde</b>
+    <ul>
+      <li><b>Caracol (peaberry):</b> grano redondo único por cereza. Es una variación natural.</li>
+      <li><b>Grano triangular:</b> forma por tres semillas en la cereza. No es defecto.</li>
+      <li><b>Quaker:</b> grano inmaduro que queda pálido al tostar. Solo se ve en la muestra tostada de 100 g; para especialidad se exige 0.</li>
+    </ul>
+  </aside>
+
+  <footer>
+    Las fotos reales son recortes de las fotos de muestra que subiste al proyecto, identificadas por Claude. Las ilustraciones son esquemas hechos para esta página. Los enlaces "Ver fotos reales" abren una búsqueda de imágenes. Fuentes: <a href="https://royalcoffee.com/green-coffee-glossary-defects-afflictions/">Royal Coffee</a>, <a href="https://espressoacademy.it/en/guide-en/green-coffee-defects-complete-guide-with-examples-and-sca-table/">Espresso Academy</a>, <a href="https://mtpak.coffee/2022/07/a-guide-to-visually-spotting-green-coffee-defects/">MTPak</a>, <a href="http://www.coffeeresearch.org/coffee/scaaclass.htm">coffeeresearch.org</a>. La referencia visual oficial es el <i>SCA Arabica Green Coffee Defect Guide</i>.
+  </footer>
+</div>
+
+<script>
+let PH={};
+let PROB={};
+const D = [
+ {k:"negro",cat:1,eq:1,es:"Negro completo",en:"Full black",q:"full black",
+  ve:"Más de la mitad del grano negro o café muy oscuro, opaco. Suele ser más chico, arrugado y con la hendidura abierta.",
+  causa:"Cerezas sobremaduras o recogidas del suelo, fermentación excesiva o ataque de hongos. Da sabores fenólicos y sucios.",
+  conf:"Negro parcial (mancha en menos de la mitad). Hongo (polvoriento, en parches)."},
+ {k:"agrio",cat:1,eq:1,es:"Agrio completo",en:"Full sour",q:"full sour",
+  ve:"Grano entero amarillo, café claro a café rojizo. A menudo con película plateada rojiza; puede verse ceroso.",
+  causa:"Sobrefermentación: demora entre cosecha y despulpado, agua sucia o secado lento. Sabor agrio, avinagrado.",
+  conf:"El tono marrón parejo de naturales y honeys. Lo delata el contraste frente a los granos sanos del mismo lote."},
+ {k:"cereza",cat:1,eq:1,es:"Cereza seca / bola",en:"Dried cherry / pod",q:"dried cherry pod",
+  ve:"Grano todavía dentro de la piel seca de la cereza: bola oscura, rugosa, más grande y sin hendidura visible.",
+  causa:"Falla de la trilla o del despulpado. Aporta sabores fermentados y sucios.",
+  conf:"Cáscara suelta (solo piel, sin grano dentro)."},
+ {k:"hongo",cat:1,eq:1,es:"Daño por hongo",en:"Fungus damage",q:"fungus damage",
+  ve:"Parches polvorientos blancos, amarillos o café rojizo, a veces con puntitos de esporas.",
+  causa:"Secado lento o bodega húmeda. Sabor a moho y tierra; puede asociarse a ocratoxina.",
+  conf:"Negro parcial (liso, sin polvo) y manchas de secado."},
+ {k:"extrana",cat:1,eq:1,es:"Materia extraña",en:"Foreign matter",q:"foreign matter stones sticks",
+  ve:"Piedras, palos, terrones o cualquier cosa que no sea café. Las piedras o palos grandes cuentan más según tamaño.",
+  causa:"Limpieza deficiente en patio o beneficio. Daña tostador y molino.",
+  conf:"Nada en particular; se separa a simple vista."},
+ {k:"insecto3",cat:1,eq:5,es:"Insecto severo",en:"Severe insect damage",q:"severe insect damage broca",
+  ve:"3 o más perforaciones de broca: agujeros redondos de ~1 mm, a veces con borde oscuro o galerías.",
+  causa:"Broca del café (Hypothenemus hampei) en la cereza. Sabores sucios, agrios o riados.",
+  conf:"Insecto leve (1 o 2 agujeros). Revisa la otra cara del grano."},
+
+ {k:"negroP",cat:2,eq:3,es:"Negro parcial",en:"Partial black",q:"partial black",
+  ve:"Mancha negra u oscura en menos de la mitad del grano: punta, borde o centro.",
+  causa:"Las mismas del negro completo, en menor grado.",
+  conf:"Negro completo. Pequeñas manchas de tierra que no penetran."},
+ {k:"agrioP",cat:2,eq:3,es:"Agrio parcial",en:"Partial sour",q:"partial sour",
+  ve:"Zona amarilla o café rojiza en menos de la mitad del grano.",
+  causa:"Sobrefermentación localizada durante el proceso o el secado.",
+  conf:"Manchas de secado normales en naturales y honeys."},
+ {k:"pergamino",cat:2,eq:5,es:"Pergamino",en:"Parchment / pergamino",q:"parchment pergamino",
+  ve:"Grano cubierto total o parcialmente por la cascarilla clara y papelosa del pergamino.",
+  causa:"Trilla incompleta o mal calibrada. Tueste desigual y sabor sucio.",
+  conf:"Película plateada (más delgada y brillante, pegada al grano)."},
+ {k:"flotador",cat:2,eq:5,es:"Flotador",en:"Floater",q:"floater bean",
+  ve:"Grano blanqueado, pálido, de aspecto liviano y poco denso.",
+  causa:"Secado o almacenamiento deficiente, o granos mal desarrollados. Sabor terroso o vacío.",
+  conf:"Inmaduro (verdoso y opaco; el flotador es blanquecino). La densidad no se ve en foto."},
+ {k:"inmaduro",cat:2,eq:5,es:"Inmaduro",en:"Immature / unripe",q:"immature unripe",
+  ve:"Más chico, verde amarillento o verde oliva claro, película plateada adherida, puntas curvadas en U y bordes delgados.",
+  causa:"Cosecha de cerezas verdes. Astringente y herbal; al tostar da quakers.",
+  conf:"Flotador y arrugado."},
+ {k:"arrugado",cat:2,eq:5,es:"Arrugado / marchito",en:"Withered",q:"withered",
+  ve:"Superficie arrugada como pasa, grano liviano.",
+  causa:"Falta de agua durante el desarrollo del fruto (sequía). Sabor a paja, herbal.",
+  conf:"Negro completo arrugado (este es oscuro)."},
+ {k:"concha",cat:2,eq:5,es:"Concha / malformado",en:"Shell",q:"shell elephant ear",
+  ve:"Grano en forma de oreja o concha, con cavidad. A veces dos piezas encajadas (oreja de elefante).",
+  causa:"Malformación genética de la semilla. Se tuesta disparejo y la parte delgada se quema.",
+  conf:"Partido (bordes de quiebre, sin cavidad)."},
+ {k:"partido",cat:2,eq:5,es:"Partido / mordido / cortado",en:"Broken / chipped / cut",q:"broken chipped cut",
+  ve:"Fragmentos, bordes quebrados, puntas faltantes o cortes de despulpadora. El corte suele estar oscurecido.",
+  causa:"Despulpadora o trilladora mal calibrada, o grano demasiado seco. Tueste desigual.",
+  conf:"Concha."},
+ {k:"cascara",cat:2,eq:5,es:"Cáscara / pulpa",en:"Hull / husk",q:"hull husk",
+  ve:"Trozos sueltos de piel o pulpa seca, sin grano dentro.",
+  causa:"Trilla o limpieza deficiente después del secado.",
+  conf:"Cereza seca (tiene el grano dentro)."},
+ {k:"insecto1",cat:2,eq:10,es:"Insecto leve",en:"Slight insect damage",q:"slight insect damage",
+  ve:"1 o 2 perforaciones pequeñas y oscuras.",
+  causa:"Broca en etapa temprana.",
+  conf:"Insecto severo (3 o más). Puntos de tierra, que no tienen profundidad."}
+];
+
+/* ---- ilustraciones ---- */
+const OUT="M100,24 C146,24 170,66 170,104 C170,148 140,178 100,178 C60,178 30,148 30,104 C30,66 54,24 100,24Z";
+const CUT="M100,40 C86,70 114,88 100,108 C86,128 114,146 100,164";
+let uid=0;
+function grad(id,c1,c2){return `<radialGradient id="${id}" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient>`}
+function bean(c1,c2,o={}){
+  const id="b"+(++uid), s=o.scale||1, tr=`translate(100 101) scale(${s}) translate(-100 -101)`;
+  let defs=grad(id,c1,c2)+`<clipPath id="c${id}"><path d="${OUT}"/></clipPath>`;
+  let inner=o.inner?o.inner(id):"";
+  return `<defs>${defs}${o.defs||""}</defs><g transform="${tr}"><path d="${o.path||OUT}" fill="url(#${id})" stroke="rgba(0,0,0,.35)" stroke-width="2"/>
+   <g clip-path="url(#c${id})">${inner}</g>
+   ${o.noCut?"":`<path d="${CUT}" fill="none" stroke="${o.cut||"rgba(40,50,35,.7)"}" stroke-width="${o.cutW||5}" stroke-linecap="round"/>`}
+   ${o.top||""}</g>`;
+}
+const HEALTHY=["#b8c4a6","#7e8f6e"];
+function hole(x,y,r=6){return `<circle cx="${x}" cy="${y}" r="${r+3}" fill="#4a3a25" opacity=".55"/><circle cx="${x}" cy="${y}" r="${r}" fill="#1b140c"/>`}
+function wrinkles(col){return [50,72,94,116,138,158].map((y,i)=>`<path d="M${36+i%2*6},${y} q16,-9 32,0 t32,0 t32,0 t32,0" fill="none" stroke="${col}" stroke-width="3" opacity=".55"/>`).join("")}
+
+const ART={
+ sano:()=>bean(...HEALTHY),
+ negro:()=>bean("#4a3b30","#16110d",{scale:.9,cut:"#000",cutW:9,inner:()=>wrinkles("#000")}),
+ agrio:()=>bean("#d39a5c","#8d4f26",{inner:()=>`<ellipse cx="78" cy="64" rx="26" ry="14" fill="#fff" opacity=".22"/>`}),
+ cereza:()=>{const id="r"+(++uid);return `<defs>${grad(id,"#7a5638","#2e1d12")}<filter id="f${id}"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2"/><feDisplacementMap in="SourceGraphic" scale="12"/></filter></defs>
+   <circle cx="100" cy="102" r="74" fill="url(#${id})" stroke="rgba(0,0,0,.4)" stroke-width="2" filter="url(#f${id})"/>
+   ${[[70,70],[120,60],[140,110],[90,130],[60,115],[115,150],[100,95]].map(([x,y])=>`<path d="M${x-12},${y} q12,-8 24,2" stroke="#1a110a" stroke-width="3" fill="none" opacity=".7"/>`).join("")}
+   <circle cx="100" cy="28" r="6" fill="#2a1a10"/>`},
+ hongo:()=>bean(...HEALTHY,{inner:id=>`<defs><filter id="m${id}"><feGaussianBlur stdDeviation="4"/></filter></defs>
+   <g filter="url(#m${id})"><ellipse cx="72" cy="80" rx="26" ry="20" fill="#f1ecd8"/><ellipse cx="128" cy="130" rx="24" ry="18" fill="#d8b64f"/><ellipse cx="118" cy="62" rx="14" ry="10" fill="#b0643a" opacity=".8"/></g>
+   ${Array.from({length:22},(_,i)=>`<circle cx="${60+((i*37)%90)}" cy="${55+((i*53)%105)}" r="1.8" fill="#3d3520" opacity=".7"/>`).join("")}`}),
+ extrana:()=>`<path d="M40,120 L58,92 L92,86 L112,104 L106,138 L70,148 L44,140Z" fill="#8a8a86" stroke="rgba(0,0,0,.4)" stroke-width="2"/>
+   <path d="M56,104 L78,98 L94,110" stroke="#a8a8a2" stroke-width="3" fill="none"/>
+   <rect x="96" y="44" width="16" height="94" rx="5" transform="rotate(38 104 91)" fill="#8a6038" stroke="rgba(0,0,0,.4)" stroke-width="2"/>
+   <path d="M128,52 l10,-8" stroke="#6b4a2a" stroke-width="4" stroke-linecap="round"/>
+   <circle cx="150" cy="150" r="14" fill="#6e5440" stroke="rgba(0,0,0,.35)" stroke-width="2"/>`,
+ insecto3:()=>bean(...HEALTHY,{top:hole(70,70)+hole(132,84)+hole(72,140)+hole(126,146,5)}),
+ negroP:()=>bean(...HEALTHY,{inner:()=>`<path d="M20,20 L180,20 L180,62 C140,78 70,50 20,70Z" fill="#1d1712"/>`}),
+ agrioP:()=>bean(...HEALTHY,{inner:id=>`<defs><filter id="s${id}"><feGaussianBlur stdDeviation="6"/></filter></defs><ellipse cx="128" cy="130" rx="36" ry="32" fill="#b2662e" opacity=".85" filter="url(#s${id})"/>`}),
+ pergamino:()=>bean(...HEALTHY,{top:`<path d="M30,104 C30,66 54,24 100,24 C120,24 136,32 148,46 L120,92 L150,118 L118,176 C108,178 104,178 100,178 C60,178 30,148 30,104Z" fill="#e8dcbc" stroke="#b9a77c" stroke-width="2" opacity=".95"/>
+   ${[60,80,100,120,140,160].map(y=>`<path d="M40,${y} q30,-6 70,2" stroke="#c9b88e" stroke-width="1.5" fill="none"/>`).join("")}`}),
+ flotador:()=>bean("#f1efe2","#c6c3ad",{cut:"rgba(120,120,100,.6)"}),
+ inmaduro:()=>bean("#d7d98a","#99a24c",{scale:.78,path:"M100,30 C150,26 168,70 160,108 C152,150 132,176 100,176 C64,176 40,150 40,108 C40,70 58,34 100,30Z",
+   cut:"rgba(80,90,30,.6)",inner:()=>[60,90,120,150].map(y=>`<path d="M44,${y} q40,-12 112,0" stroke="#f4f4dc" stroke-width="2.5" fill="none" opacity=".8"/>`).join("")}),
+ arrugado:()=>bean("#c4cca6","#8e9a72",{scale:.88,inner:()=>wrinkles("#5a6448")}),
+ concha:()=>{const id="h"+(++uid);return `<defs>${grad(id,...HEALTHY)}</defs>
+   <path d="M100,24 C150,24 172,70 168,112 C164,152 136,178 98,178 C58,178 30,148 32,104 C34,64 58,24 100,24Z" fill="url(#${id})" stroke="rgba(0,0,0,.35)" stroke-width="2"/>
+   <path d="M104,52 C136,56 148,88 144,114 C140,142 122,158 100,158 C78,158 66,140 72,118 C78,96 98,96 98,80 C98,66 96,56 104,52Z" fill="#44523a" stroke="rgba(0,0,0,.3)" stroke-width="2"/>
+   <path d="M104,62 C128,68 136,92 132,114" stroke="#6b7a5c" stroke-width="3" fill="none"/>`},
+ partido:()=>bean(...HEALTHY,{path:"M100,24 C146,24 170,66 170,98 L132,112 L152,140 C134,170 116,178 100,178 C60,178 30,148 30,104 C30,66 54,24 100,24Z",
+   top:`<path d="M170,98 L132,112 L152,140" fill="none" stroke="#5b4a2e" stroke-width="5" stroke-linejoin="round"/>`}),
+ cascara:()=>`<path d="M44,70 C70,40 128,36 156,62 C150,80 132,72 120,92 C106,118 140,132 128,156 C100,170 62,158 50,134 C66,120 72,104 56,96 C44,90 40,80 44,70Z" fill="#6f4b2c" stroke="rgba(0,0,0,.45)" stroke-width="2"/>
+   <path d="M60,86 q30,-20 70,-14 M70,140 q20,6 44,0" stroke="#3e2816" stroke-width="3" fill="none"/>
+   <path d="M150,150 l10,-30 l14,6 l-8,30Z" fill="#8a5e36" stroke="rgba(0,0,0,.4)" stroke-width="2"/>`,
+ insecto1:()=>bean(...HEALTHY,{top:hole(126,78,5)})
+};
+
+function card(d){
+  const c=d.cat===1?"c1":"c2";
+  const eq=d.eq===1?"1 grano = 1 defecto":`${d.eq} granos = 1 defecto`;
+  const url="https://www.google.com/search?tbm=isch&q="+encodeURIComponent(`green coffee ${d.q} defect`);
+  return `<article class="card">
+   <div class="head"><svg viewBox="0 0 200 200" role="img" aria-label="Ilustración: ${d.es}">${ART[d.k]()}</svg>
+    <div><h3>${d.es}</h3><div class="en">${d.en}</div>
+     <div class="tags"><span class="tag ${c}">Cat. ${d.cat}</span><span class="tag eq">${eq}</span></div></div></div>
+   ${PH[d.k]?`<figure class="shots">${PH[d.k].map((u,i)=>`<img src="${u}" alt="Foto real: ${d.es} ${i+1}" loading="lazy">`).join("")}<figcaption>Fotos reales de tus muestras${PROB[d.k]?". Probable; confírmalo en mano.":"."}</figcaption></figure>`:`<p class="nophoto">Todavía no aparece en tus fotos. La ilustración muestra qué buscar.</p>`}
+   <dl><dt>Cómo se ve</dt><dd>${d.ve}</dd><dt>Por qué ocurre</dt><dd>${d.causa}</dd><dt>Se confunde con</dt><dd>${d.conf}</dd></dl>
+   <a class="photos" href="${url}" target="_blank" rel="noopener">Ver fotos reales ↗</a>
+  </article>`;
+}
+function pintar(){
+ document.getElementById("g1").innerHTML=D.filter(d=>d.cat===1).map(card).join("");
+ document.getElementById("g2").innerHTML=D.filter(d=>d.cat===2).map(card).join("");
+ const n=D.filter(d=>PH[d.k]&&PH[d.k].length).length;
+ if(n)document.getElementById("conteo-fotos").textContent=`${n} de 16 defectos ya tienen fotos reales recortadas de tus muestras`;
+}
+pintar();
+/* Fotos: atlas/fotos.json lista las fotos de atlas/fotos/ por defecto; "_probables" marca las que falta confirmar en mano */
+fetch("fotos.json",{cache:"no-cache"}).then(r=>r.ok?r.json():{}).then(j=>{
+ PROB=Object.fromEntries((j._probables||[]).map(k=>[k,1])); delete j._probables;
+ PH=j; pintar();
+}).catch(()=>{});
+document.querySelector('[data-bean="sano"]').innerHTML=ART.sano();
+
+const btns=[...document.querySelectorAll(".filters button")];
+function setF(f){btns.forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===f));
+  document.querySelectorAll(".group").forEach(g=>g.hidden=!(f==="all"||g.dataset.cat===f));
+  try{localStorage.setItem("f",f)}catch(e){}}
+btns.forEach(b=>b.addEventListener("click",()=>setF(b.dataset.f)));
+try{const f=localStorage.getItem("f");if(f)setF(f)}catch(e){}
+</script>
+
+</body></html>

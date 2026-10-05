@@ -1,0 +1,23 @@
+{
+ "_probables": [
+  "inmaduro"
+ ],
+ "negro": [
+  "fotos/negro-1.jpg"
+ ],
+ "insecto1": [
+  "fotos/insecto1-1.jpg",
+  "fotos/insecto1-2.jpg"
+ ],
+ "negroP": [
+  "fotos/negroP-1.jpg",
+  "fotos/negroP-2.jpg"
+ ],
+ "partido": [
+  "fotos/partido-1.jpg",
+  "fotos/partido-2.jpg"
+ ],
+ "inmaduro": [
+  "fotos/inmaduro-1.jpg"
+ ]
+}
