@@ -20,7 +20,8 @@ const DEFECTOS = [
   {k:"insecto_leve",n:"Insecto leve",c:2,e:10,d:"1 o 2 perforaciones oscuras de 0,25 a 1,5 mm, a menudo en las puntas o en la cara curva; revisa cada grano de cerca (los puntos de tierra no tienen profundidad)"}
 ];
 const MODELO = "claude-opus-5-5";
-const MAX_FOTOS = 2, MAX_REFS = 2, LADO_MAX = 1568;
+const MAX_REFS = 2, LADO_MAX = 1568;
+const MAX_FOTOS_MODO = {mezclado: 2, montones: 6};
 
 const $ = id => document.getElementById(id);
 const vacio = () => Object.fromEntries(DEFECTOS.map(d => [d.k, 0]));
@@ -97,6 +98,25 @@ async function recargar(){
   renderHist(); renderAprendizaje(); renderAvisos();
 }
 
+// ---------- Modo de foto ----------
+const modoActual = () => document.querySelector('input[name="modo"]:checked')?.value || "montones";
+const maxFotos = () => MAX_FOTOS_MODO[modoActual()];
+function setModo(v){
+  const el = document.querySelector(`input[name="modo"][value="${v === "mezclado" ? "mezclado" : "montones"}"]`); if (el) el.checked = true;
+  renderModo();
+}
+function renderModo(){
+  $("ayuda-fotos").textContent = modoActual() === "montones"
+    ? "Hasta 6 fotos. Cada montón con su papelito a la vista; Claude lee el papel y cuenta los granos."
+    : "Hasta 2 fotos: una por cada cara de los granos (voltéalos sin moverlos).";
+}
+document.querySelectorAll('input[name="modo"]').forEach(x => x.addEventListener("change", () => {
+  try { localStorage.setItem("modo", modoActual()); } catch {}
+  renderModo();
+  if (fotos.length > maxFotos()) { fotos = fotos.slice(0, maxFotos()); renderFotos(); estado("En modo mezclado uso solo las primeras " + maxFotos() + " fotos."); }
+}));
+try { setModo(localStorage.getItem("modo") || "montones"); } catch { renderModo(); }
+
 // ---------- Fotos ----------
 async function reducir(file){
   // Achica a 1568 px por lado (lo que Claude mira) y la pasa a JPEG; también convierte HEIC en Safari.
@@ -116,7 +136,7 @@ async function agregarArchivos(lista){
   if (!nuevas.length) return;
   estado("Preparando foto…");
   for (const f of nuevas) {
-    if (fotos.length >= MAX_FOTOS) { estado("Uso solo " + MAX_FOTOS + " fotos por muestra (una por cara)."); break; }
+    if (fotos.length >= maxFotos()) { estado("Uso hasta " + maxFotos() + " fotos por muestra" + (modoActual() === "mezclado" ? " (una por cara)." : ".")); break; }
     try { fotos.push(await reducir(f)); estado(""); }
     catch { estado("No pude abrir esa foto. Prueba con otra o sácala en JPG.", true); }
   }
@@ -172,7 +192,8 @@ Reglas SCA:
 - El ámbar (solo superficie) y el exceso de película plateada amarilla NO son agrio; busca embrión oscuro y película rojiza.
 - Si dudas entre dos categorías, no lo cuentes: ponlo en "dudosos" con su ubicación (foto, zona) y tu hipótesis.
 - Recorre la foto grano por grano y verifica que conteos + dudosos + sanos se acerque al total de granos visibles.
-- Si hay dos fotos de la muestra, son la misma bandeja por cada cara: cuenta cada grano una sola vez y usa la segunda cara para ver perforaciones y manchas ocultas.
+- Modo "mezclado": si hay dos fotos, son la misma bandeja por cada cara; cuenta cada grano una sola vez y usa la segunda cara para ver perforaciones y manchas ocultas.
+- Modo "montones": el catador separó los granos en montones por tipo, cada uno con un papel escrito con el nombre del defecto. Lee cada papel y asigna esos granos a ese tipo: la etiqueta del catador manda. Tu trabajo principal es contar con precisión los granos de cada montón. Si un grano de un montón claramente no corresponde a su etiqueta, cuéntalo igual con la etiqueta y anótalo en "dudosos". Un montón marcado "duda" no se suma: describe en "dudosos" qué crees que es cada grano. Si un papel no se lee, clasifica esos granos tú y dilo en "problemas_foto". Si un mismo montón aparece en dos fotos, cuéntalo una sola vez.
 - Si la foto impide juzgar (desenfoque, sombras, granos encimados), dilo en "problemas_foto".
 - Escribe en español.`;
 
@@ -200,11 +221,13 @@ async function contenidoEvaluacion(m, fotosMuestra){
     content.push(await bloqueImagen(r.fotos[0]));
     content.push({type: "text", text: `Referencia: lote ${r.lote || "sin nombre"} (${r.origen || "origen no indicado"}), ${r.peso || 350} g. Conteo verificado: ${conteoTexto(r.catador)}${r.sin_clasificar ? `; ${r.sin_clasificar} granos sin clasificar` : ""}.${r.notas_catador ? " Notas del catador: " + r.notas_catador : ""}`});
   }
-  content.push({type: "text", text: `MUESTRA NUEVA a clasificar (${fotosMuestra.length} foto${fotosMuestra.length > 1 ? "s" : ""}):`});
+  const montones = m.modo !== "mezclado";
+  content.push({type: "text", text: `MUESTRA NUEVA a clasificar (${fotosMuestra.length} foto${fotosMuestra.length > 1 ? "s" : ""}, modo ${montones ? "montones con etiqueta" : "mezclado"}):`});
   for (const b of fotosMuestra) content.push(await bloqueImagen(b));
   const lec = lecciones.length ? "Lecciones aprendidas de correcciones anteriores del catador (síguelas):\n" + lecciones.map(l => "- " + l.texto).join("\n") : "";
   content.push({type: "text", text: [
     `Estas fotos muestran SOLO los granos que el catador separó como defectuosos de una muestra de ${m.peso || 350} g.`,
+    montones ? "Están separados en montones por tipo, cada uno con un papel que dice el defecto. Usa las etiquetas y cuenta con cuidado cada montón." : "Están mezclados: clasifica cada grano.",
     `Lote: ${m.lote || "sin nombre"}. Origen/proceso: ${m.origen || "no indicado"}.`,
     lec, textoSesgos(),
     "Clasifica cada grano y responde con el JSON pedido."
@@ -294,7 +317,8 @@ async function guardarLecciones(nuevas, origen){
 function estado(t, err){ $("status").textContent = t; $("status").className = "status" + (err ? " err" : ""); }
 function datosForm(){
   return {lote: $("lote").value.trim() || "Sin nombre", origen: $("origen").value.trim(), fecha: $("fecha").value || hoy(),
-    peso: num($("peso").value) || 350, humedad: num($("humedad").value), quakers: num($("quakers").value)};
+    peso: num($("peso").value) || 350, humedad: num($("humedad").value), quakers: num($("quakers").value),
+    proveedor: $("proveedor").value.trim(), densidad: num($("densidad").value), malla: $("malla").value.trim(), modo: modoActual()};
 }
 function calcular(){ return gradoDe(catador, num($("peso").value) || 350, num($("humedad").value), num($("quakers").value)); }
 ["peso", "humedad", "quakers"].forEach(id => $(id).addEventListener("input", () => { if (!$("resultado").hidden) actualizarResumen(); }));
@@ -461,9 +485,44 @@ $("guardar").addEventListener("click", async () => {
   $("h-hist").scrollIntoView({behavior: "smooth", block: "start"});
 });
 
+// ---------- Informe ----------
+function textoInforme(m, r){
+  const L = [];
+  L.push("Informe de café verde (norma SCA)");
+  L.push("Lote: " + (m.lote || "Sin nombre") + (m.origen ? " · " + m.origen : ""));
+  if (m.proveedor) L.push("Proveedor: " + m.proveedor);
+  L.push("Fecha: " + (m.fecha || hoy()) + " · Muestra: " + (m.peso || 350) + " g");
+  const fis = [m.humedad != null ? "Humedad " + m.humedad + " %" : "", m.densidad != null ? "Densidad " + m.densidad + " g/L" : "", m.malla ? "Malla " + m.malla : "", m.quakers != null ? "Quakers " + m.quakers + " en 100 g" : ""].filter(Boolean);
+  if (fis.length) L.push(fis.join(" · "));
+  L.push("");
+  L.push("Resultado: " + (r.grado === "Especialidad" ? "Café de especialidad" : r.grado));
+  L.push(r.porque);
+  r.avisos.forEach(a => L.push(a));
+  L.push("Defectos completos: categoría 1 = " + r.cat1 + ", categoría 2 = " + r.cat2 + ", total = " + r.total);
+  const filas = r.filas.filter(f => f.granos);
+  if (filas.length) {
+    L.push("");
+    L.push("Detalle (granos → defectos completos):");
+    filas.forEach(f => L.push("- " + f.n + " (cat. " + f.c + "): " + f.granos + " → " + f.completos));
+  }
+  if (m.notas_catador) { L.push(""); L.push("Notas: " + m.notas_catador); }
+  return L.join("\n");
+}
+async function compartirTexto(t, salida){
+  try { if (navigator.share) { await navigator.share({text: t}); salida.textContent = "Listo."; return; } }
+  catch (e) { if (e?.name === "AbortError") { salida.textContent = ""; return; } }
+  try { await navigator.clipboard.writeText(t); salida.textContent = "Informe copiado. Pégalo donde quieras."; }
+  catch { salida.textContent = "No pude compartir ni copiar el informe en este navegador."; }
+}
+$("compartir").addEventListener("click", () => {
+  const m = {...datosForm(), notas_catador: $("notas-catador").value.trim()};
+  compartirTexto(textoInforme(m, calcular()), $("guardar-status"));
+});
+
 function limpiarForm(){
   fotos = []; editandoId = null; claudeRes = null; catador = vacio(); sinClasificar = 0;
-  $("lote").value = ""; $("notas-catador").value = ""; $("humedad").value = ""; $("quakers").value = ""; $("peso").value = 350; $("fecha").value = hoy();
+  $("lote").value = ""; $("notas-catador").value = ""; $("humedad").value = ""; $("quakers").value = "";
+  $("proveedor").value = ""; $("densidad").value = ""; $("malla").value = ""; $("peso").value = 350; $("fecha").value = hoy();
   $("es-ref").checked = true; renderFotos();
 }
 
@@ -472,6 +531,8 @@ function abrirMuestra(m){
   editandoId = m.id; fotos = [...(m.fotos || [])];
   $("lote").value = m.lote || ""; $("origen").value = m.origen || ""; $("fecha").value = m.fecha || hoy();
   $("peso").value = m.peso || 350; $("humedad").value = m.humedad ?? ""; $("quakers").value = m.quakers ?? "";
+  $("proveedor").value = m.proveedor || ""; $("densidad").value = m.densidad ?? ""; $("malla").value = m.malla || "";
+  if (m.modo) setModo(m.modo);
   claudeRes = m.claude ? {conteos: limpiar(m.claude), ...(m.claude_detalle || {})} : null;
   catador = m.catador ? limpiar(m.catador) : m.claude ? limpiar(m.claude) : vacio();
   sinClasificar = parseInt(m.sin_clasificar) || 0;
@@ -514,14 +575,23 @@ function renderAvisos(){
 }
 
 // ---------- Render de base y aprendizaje ----------
+$("buscar").addEventListener("input", () => renderHist());
 function renderHist(){
   const h = $("historial"); h.replaceChildren();
+  const provs = [...new Set(muestras.map(m => m.proveedor).filter(Boolean))];
+  $("proveedores").replaceChildren(...provs.map(v => { const o = document.createElement("option"); o.value = v; return o; }));
+  const q = $("buscar").value.trim().toLowerCase();
+  const lista = q ? muestras.filter(m => [m.lote, m.origen, m.proveedor].some(x => String(x || "").toLowerCase().includes(q))) : muestras;
+  const evals = lista.filter(m => m.estado !== "pendiente" && Number.isFinite(m.total));
+  $("resumen-base").textContent = !muestras.length ? "" : (q ? lista.length + " de " + muestras.length + " muestras" : muestras.length + " muestra(s)") +
+    (evals.length ? " · promedio " + (evals.reduce((a, m) => a + m.total, 0) / evals.length).toFixed(1).replace(".", ",") + " defectos completos · " + evals.filter(m => m.grado === "Especialidad").length + " de especialidad" : "");
   if (!muestras.length) {
     const p = document.createElement("p"); p.className = "status";
     p.textContent = "Todavía no hay muestras. Evalúa una y toca Guardar y enseñar, o carga las muestras del proyecto en Respaldo.";
     h.append(p); return;
   }
-  muestras.forEach(m => {
+  if (q && !lista.length) { const p = document.createElement("p"); p.className = "status"; p.textContent = "Ninguna muestra coincide con la búsqueda."; h.append(p); return; }
+  lista.forEach(m => {
     const it = document.createElement("div"); it.className = "hitem";
     let img;
     if (m.fotos?.[0]) { img = document.createElement("img"); img.src = urlDe(m.fotos[0]); img.alt = ""; img.loading = "lazy"; }
@@ -530,7 +600,7 @@ function renderHist(){
     const t = document.createElement("div"); t.className = "t"; t.textContent = m.lote || "Sin nombre";
     const meta = document.createElement("div"); meta.className = "m";
     meta.textContent = m.estado === "pendiente" ? [m.fecha, m.origen, "sin evaluar"].filter(Boolean).join(" · ")
-      : [m.fecha, m.origen, "cat. 1: " + (m.cat1 ?? "?") + " · total: " + (m.total ?? "?"), m.estado === "evaluada" ? "falta tu revisión" : m.claude ? "con Claude" : "solo catador"].filter(Boolean).join(" · ");
+      : [m.fecha, m.origen, m.proveedor, "cat. 1: " + (m.cat1 ?? "?") + " · total: " + (m.total ?? "?"), m.estado === "evaluada" ? "falta tu revisión" : m.claude ? "con Claude" : "solo catador"].filter(Boolean).join(" · ");
     const acts = document.createElement("div"); acts.className = "acts";
     const p = document.createElement("span"); p.className = "pill " + (m.estado === "pendiente" ? "pend" : ["ok", "warn", "bad"].includes(m.clase) ? m.clase : "warn");
     p.textContent = m.estado === "pendiente" ? "Pendiente" : (m.grado || "—") + (m.estado === "evaluada" ? " · sin revisar" : "");
@@ -542,6 +612,11 @@ function renderHist(){
       rb.setAttribute("aria-pressed", m.referencia ? "true" : "false");
       rb.addEventListener("click", async () => { await dbPut({...m, referencia: !m.referencia}); recargar(); });
       acts.append(rb);
+    }
+    if (m.estado !== "pendiente") {
+      const ib = document.createElement("button"); ib.className = "small"; ib.textContent = "Informe";
+      ib.addEventListener("click", () => compartirTexto(textoInforme(m, gradoDe(m.catador || m.claude || {}, m.peso, m.humedad ?? null, m.quakers ?? null)), $("resumen-base")));
+      acts.append(ib);
     }
     const db = document.createElement("button"); db.className = "small"; db.textContent = "Borrar";
     db.addEventListener("click", async () => { if (confirm("¿Borrar la muestra " + (m.lote || "") + " y sus fotos de este teléfono?")) { await dbDel(m.id); if (editandoId === m.id) limpiarForm(); recargar(); } });

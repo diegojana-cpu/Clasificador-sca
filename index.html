@@ -42,6 +42,11 @@ p{margin:0}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .grid .wide{grid-column:1/-1}
 label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+fieldset.modo{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+fieldset.modo legend{font-size:13px;color:var(--muted);margin-bottom:6px;padding:0}
+fieldset.modo input{width:20px;height:20px;flex:none}
+.guia summary{font-weight:600;cursor:pointer}
+input[type=search]{font:16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-width:0}
 label.check{flex-direction:row;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
 input[type=text],input[type=password],input[type=number],input[type=date],textarea,select{font:16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-width:0}
 textarea{min-height:64px;resize:vertical}
@@ -144,13 +149,33 @@ details.card[open] > summary::after{content:"–"}
       <label>Peso (g)<input id="peso" type="number" inputmode="decimal" value="350" min="1"></label>
       <label>Humedad %<input id="humedad" type="number" inputmode="decimal" step="0.1" placeholder="opcional"></label>
       <label>Quakers / 100 g<input id="quakers" type="number" inputmode="numeric" min="0" placeholder="opcional"></label>
+      <label class="wide">Proveedor<input id="proveedor" type="text" placeholder="opcional" list="proveedores" autocomplete="off"></label>
+      <label>Densidad (g/L)<input id="densidad" type="number" inputmode="numeric" min="0" placeholder="opcional"></label>
+      <label>Malla<input id="malla" type="text" placeholder="Ej. 85 % sobre 16" autocomplete="off"></label>
     </div>
+    <datalist id="proveedores"></datalist>
     <datalist id="procesos"><option value="lavado"><option value="honey"><option value="natural"><option value="anaeróbico"></datalist>
   </section>
 
   <section class="card" aria-labelledby="h-fotos">
     <h2 id="h-fotos">2 · Fotos de los defectos</h2>
-    <p class="status">Hasta 2 fotos: una por cada cara de los granos (voltéalos sin moverlos).</p>
+    <fieldset class="modo">
+      <legend>¿Cómo pusiste los defectos?</legend>
+      <label class="check"><input type="radio" name="modo" value="montones" checked> <span><b>Un montón por tipo</b>, con un papelito que diga el defecto (recomendado)</span></label>
+      <label class="check"><input type="radio" name="modo" value="mezclado"> <span><b>Todos mezclados</b> en la bandeja</span></label>
+    </fieldset>
+    <p class="status" id="ayuda-fotos"></p>
+    <details class="guia">
+      <summary>Cómo sacar una buena foto</summary>
+      <ul class="plain">
+        <li>Fondo gris o blanco mate, siempre el mismo. Nada brillante.</li>
+        <li>Luz pareja junto a una ventana, sin sol directo ni flash, sin sombras fuertes.</li>
+        <li>Una moneda o regla al lado, para la escala.</li>
+        <li>Celular paralelo a la mesa, a 20–30 cm y siempre a la misma altura, sin zoom.</li>
+        <li>Una sola capa, granos sin tocarse, máximo ~60 por foto.</li>
+        <li>Por montones: escribe en cada papelito el nombre del defecto (negro, negro parcial, agrio, agrio parcial, cereza, hongo, extraña, broca 3+, broca 1-2, pergamino, flotador, inmaduro, arrugado, concha, partido, cáscara). Si dudas de un grano, ponlo en un montón aparte con "duda".</li>
+      </ul>
+    </details>
     <div class="pick">
       <label>Tomar foto<input id="camara" type="file" accept="image/*" capture="environment"></label>
       <label>Elegir de la galería<input id="galeria" type="file" accept="image/*" multiple></label>
@@ -168,7 +193,7 @@ details.card[open] > summary::after{content:"–"}
     <details id="modo-chat">
       <summary><b>Sin clave: evaluar en el chat de Claude</b></summary>
       <ol class="plain" style="margin-top:8px">
-        <li>Manda la foto a Claude en tu proyecto, con el origen y el peso de la muestra.</li>
+        <li>Manda la foto a Claude en tu proyecto, con el origen, el peso y si está por montones o mezclada.</li>
         <li>Claude te responde con un código que empieza con <span class="mono">SCA{</span>. Cópialo entero.</li>
         <li>Pégalo aquí y toca Usar resultado. Luego corriges y guardas como siempre.</li>
       </ol>
@@ -194,11 +219,14 @@ details.card[open] > summary::after{content:"–"}
     <div id="extra" class="list"></div>
     <label class="check"><input id="es-ref" type="checkbox" checked> Usar como ejemplo de referencia para Claude</label>
     <div class="row stack"><button class="primary" id="guardar">Guardar y enseñar</button></div>
+    <div class="row"><button id="compartir">Compartir informe</button></div>
     <p class="status" id="guardar-status" role="status" aria-live="polite"></p>
   </section>
 
   <section class="card" aria-labelledby="h-hist">
     <h2 id="h-hist">Base de muestras</h2>
+    <input id="buscar" type="search" placeholder="Buscar por lote, origen o proveedor" aria-label="Buscar muestras" autocomplete="off">
+    <p class="status" id="resumen-base"></p>
     <div class="list" id="historial"></div>
   </section>
 
@@ -265,7 +293,7 @@ details.card[open] > summary::after{content:"–"}
       <li>Celular paralelo a la mesa, a 20–30 cm, sin zoom.</li>
       <li>Una capa, granos sin tocarse, máximo ~60 por foto.</li>
       <li>Segunda foto con los granos volteados.</li>
-      <li>Para enseñar mejor: agrupa los granos por tipo antes de la foto.</li>
+      <li>Para enseñar mejor: agrupa los granos por tipo, con un papelito, antes de la foto.</li>
     </ul>
   </details>
 </main>
