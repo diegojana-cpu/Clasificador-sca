@@ -2,22 +2,22 @@ import { Anthropic } from "./vendor/anthropic.js";
 
 // ---------- Ficha SCA ----------
 const DEFECTOS = [
-  {k:"negro_completo",n:"Negro completo",c:1,e:1,d:"más de la mitad del grano negro o marrón muy oscuro, opaco; suele ser más chico, arrugado y con la hendidura central abierta. No confundir con hongo (polvoriento, en parches)"},
-  {k:"agrio_completo",n:"Agrio completo",c:1,e:1,d:"grano entero amarillo, café claro a café oscuro o rojizo, a menudo con película plateada rojiza o aspecto ceroso. En naturales y honeys un tono marrón suave y parejo es propio del proceso: márcalo agrio solo si destaca claramente frente a los granos sanos del lote"},
+  {k:"negro_completo",n:"Negro completo",c:1,e:1,d:"más de la mitad del grano negro o marrón muy oscuro, opaco y liso; suele ser más chico, liviano, arrugado y con la hendidura central demasiado abierta. Si brilla, es un negro con película plateada pegada (sigue siendo negro). No confundir con hongo (polvoriento, en relieve)"},
+  {k:"agrio_completo",n:"Agrio completo",c:1,e:1,d:"grano entero amarillo intenso, café amarillento a café rojizo, con el embrión oscuro o negro (a veces un punto negro en la punta) y la película plateada rojiza; puede verse ceroso. En naturales (amarillo verdoso parejo) y honeys un tono marrón suave y parejo es propio del proceso, y el ámbar solo cambia la superficie: márcalo agrio solo si destaca claramente frente a los granos sanos y tiene esas señales"},
   {k:"cereza_seca",n:"Cereza seca",c:1,e:1,d:"grano todavía dentro de la piel seca de la cereza: bola oscura y rugosa, más grande, sin hendidura visible (la cáscara suelta no tiene grano dentro)"},
-  {k:"hongo",n:"Daño por hongo",c:1,e:1,d:"parches polvorientos blancos, amarillos o café rojizo, a veces con puntos de esporas (no liso como el negro parcial)"},
+  {k:"hongo",n:"Daño por hongo",c:1,e:1,d:"capa polvorienta en relieve, amarilla a café rojiza (a veces con puntos de esporas), encima de la superficie; el negro parcial es liso y sin polvo"},
   {k:"materia_extrana",n:"Materia extraña",c:1,e:1,d:"piedras, palos, terrones u otros objetos que no son café"},
-  {k:"insecto_severo",n:"Insecto severo",c:1,e:5,d:"3 o más perforaciones de broca: agujeros redondos de ~1 mm, a veces con borde oscuro o galerías"},
+  {k:"insecto_severo",n:"Insecto severo",c:1,e:5,d:"3 o más perforaciones de broca: agujeros oscuros de 0,25 a 1,5 mm, en cualquier ángulo, a menudo en las puntas, a veces con galerías o manchas azuladas o negras alrededor"},
   {k:"negro_parcial",n:"Negro parcial",c:2,e:3,d:"mancha negra u oscura lisa en menos de la mitad del grano (punta, borde o centro); no confundir con puntos de tierra"},
-  {k:"agrio_parcial",n:"Agrio parcial",c:2,e:3,d:"zona amarilla o café rojiza en menos de la mitad del grano, que destaca frente al tono normal del lote (no manchas de secado de naturales y honeys)"},
+  {k:"agrio_parcial",n:"Agrio parcial",c:2,e:3,d:"zona amarilla o café rojiza en menos de la mitad del grano, que destaca frente al tono normal del lote (no manchas de secado de naturales y honeys, ni exceso de película plateada)"},
   {k:"pergamino",n:"Pergamino",c:2,e:5,d:"grano cubierto total o parcialmente por la cascarilla clara y papelosa del pergamino (la película plateada es más delgada y brillante)"},
-  {k:"flotador",n:"Flotador",c:2,e:5,d:"grano blanqueado, blanquecino, de aspecto liviano y poco denso (el inmaduro, en cambio, es verdoso)"},
-  {k:"inmaduro",n:"Inmaduro",c:2,e:5,d:"más chico, verde amarillento o verde oliva claro, opaco, película plateada adherida, puntas curvadas en U, bordes delgados. Es frecuente: revisa todos los granos verdosos"},
+  {k:"flotador",n:"Flotador",c:2,e:5,d:"grano blanco opaco, blanqueado, más redondeado y de aspecto liviano y poco denso (el inmaduro, en cambio, es verdoso y de bordes afilados)"},
+  {k:"inmaduro",n:"Inmaduro",c:2,e:5,d:"más chico, cóncavo, verde amarillento o verde oliva claro, opaco, con la película plateada muy pegada, la ranura ventral cerrada, puntas curvadas en U y bordes delgados y afilados. Es frecuente: revisa todos los granos verdosos"},
   {k:"arrugado",n:"Arrugado",c:2,e:5,d:"superficie arrugada como pasa, grano liviano y claro (si es oscuro, es negro)"},
-  {k:"concha",n:"Concha / malformado",c:2,e:5,d:"grano en forma de oreja o concha con cavidad, o dos mitades una dentro de otra; también granos deformes o asimétricos por defecto de formación"},
-  {k:"partido",n:"Partido / mordido",c:2,e:5,d:"fragmentos, bordes quebrados, puntas faltantes o cortes de despulpadora, a menudo con el corte oscurecido. Es frecuente: revisa el contorno de cada grano"},
+  {k:"concha",n:"Concha / malformado",c:2,e:5,d:"grano cóncavo en forma de oreja o concha, con cavidad y bordes curvos y lisos, o dos mitades una dentro de otra (oreja de elefante); también granos deformes o asimétricos por defecto de formación"},
+  {k:"partido",n:"Partido / mordido",c:2,e:5,d:"fragmentos con fractura irregular, bordes quebrados, puntas faltantes o cortes; borde oscuro o rojizo = despulpadora, borde limpio = trilla. Es frecuente: revisa el contorno de cada grano"},
   {k:"cascara",n:"Cáscara / pulpa",c:2,e:5,d:"trozos sueltos de piel o pulpa seca, sin grano dentro"},
-  {k:"insecto_leve",n:"Insecto leve",c:2,e:10,d:"1 o 2 perforaciones pequeñas y oscuras de ~1 mm, a menudo cerca de la punta o en la cara curva; revisa cada grano de cerca"}
+  {k:"insecto_leve",n:"Insecto leve",c:2,e:10,d:"1 o 2 perforaciones oscuras de 0,25 a 1,5 mm, a menudo en las puntas o en la cara curva; revisa cada grano de cerca (los puntos de tierra no tienen profundidad)"}
 ];
 const MODELO = "claude-opus-5-5";
 const MAX_FOTOS = 2, MAX_REFS = 2, LADO_MAX = 1568;
@@ -168,7 +168,8 @@ Reglas SCA:
 - Un grano con varios defectos se cuenta una sola vez, por el más grave.
 - Caracol (peaberry) y granos triangulares NO son defectos SCA: cuéntalos como sanos.
 - Aspecto según proceso: lavado = verde azulado parejo, cualquier marrón o amarillo llama la atención; honey = puede tener tonos café claro suaves y restos de mucílago seco; natural = más variación ámbar o marrón parejo. Esos tonos parejos NO son agrio.
-- La densidad (flotador) no se ve bien en foto; márcalo solo si el grano se ve claramente blanqueado.
+- La densidad (flotador) no se ve bien en foto; márcalo solo si el grano se ve claramente blanco opaco y redondeado.
+- El ámbar (solo superficie) y el exceso de película plateada amarilla NO son agrio; busca embrión oscuro y película rojiza.
 - Si dudas entre dos categorías, no lo cuentes: ponlo en "dudosos" con su ubicación (foto, zona) y tu hipótesis.
 - Recorre la foto grano por grano y verifica que conteos + dudosos + sanos se acerque al total de granos visibles.
 - Si hay dos fotos de la muestra, son la misma bandeja por cada cara: cuenta cada grano una sola vez y usa la segunda cara para ver perforaciones y manchas ocultas.

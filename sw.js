@@ -1,5 +1,5 @@
 // Guarda la app en el teléfono para que abra sin señal. Las llamadas a Claude nunca pasan por la caché.
-const CACHE = "clasificador-v5";
+const CACHE = "clasificador-v6";
 const ARCHIVOS = ["./", "index.html", "app.js", "vendor/anthropic.js", "manifest.webmanifest", "icono.svg", "icono-180.png", "icono-192.png", "icono-512.png",
   "semilla/base.json", "semilla/colombia-natural.jpg", "semilla/honduras-honey.jpg"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)).then(() => self.skipWaiting())); });
